@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas Rápidas Asclepio</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        textarea {
+            width: 90%;
+            height: 100px;
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+
+        canvas {
+            border: 2px solid black;
+            margin: 10px 0;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+
+        #photoPreview {
+            max-width: 90%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>A S C L E P I O - N O T A S</h1>
+    
+    <textarea id="noteContent" placeholder="Escribe tu nota aquí..."></textarea>
+    
+    <canvas id="drawingCanvas" width="400" height="200"></canvas>
+    <div>
+        <button onclick="changeColor('red')">Rojo</button>
+        <button onclick="changeColor('yellow')">Amarillo</button>
+        <button onclick="changeColor('black')">Negro</button>
+        <button onclick="clearCanvas()">Limpiar Dibujo</button>
+    </div>
+
+    <input type="file" id="photoInput" accept="image/*" onchange="loadPhoto(event)">
+    <img id="photoPreview" alt="Vista previa de la foto">
+
+    <div>
+        <button onclick="saveNote()">Guardar Nota</button>
+        <button onclick="generatePDF()">Generar PDF</button>
+        <button onclick="clearAll()">Eliminar Todo</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        const noteContent = document.getElementById('noteContent');
+        const drawingCanvas = document.getElementById('drawingCanvas');
+        const ctx = drawingCanvas.getContext('2d');
+        let drawing = false;
+        let currentColor = 'black';
+
+        function changeColor(color) {
+            currentColor = color;
+        }
+
+        drawingCanvas.addEventListener('mousedown', startDrawing);
+        drawingCanvas.addEventListener('mousemove', draw);
+        drawingCanvas.addEventListener('mouseup', stopDrawing);
+        drawingCanvas.addEventListener('mouseleave', stopDrawing);
+
+        function startDrawing(e) {
+            drawing = true;
+            draw(e); // Para empezar a dibujar inmediatamente
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = currentColor;
+
+            ctx.lineTo(e.clientX - drawingCanvas.offsetLeft, e.clientY - drawingCanvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - drawingCanvas.offsetLeft, e.clientY - drawingCanvas.offsetTop);
+        }
+
+        function stopDrawing() {
+            drawing = false;
+            ctx.beginPath(); // Resetear el camino para evitar líneas continuas
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        }
+
+        function loadPhoto(event) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                const dataURL = reader.result;
+                localStorage.setItem('photo', dataURL);
+                document.getElementById('photoPreview').src = dataURL;
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function saveNote() {
+            const note = noteContent.value;
+            const drawing = drawingCanvas.toDataURL();
+            localStorage.setItem('note', note);
+            localStorage.setItem('drawing', drawing);
+            alert('Nota guardada exitosamente.');
+        }
+
+        function loadNote() {
+            const savedNote = localStorage.getItem('note');
+            const savedDrawing = localStorage.getItem('drawing');
+            const savedPhoto = localStorage.getItem('photo');
+
+            if (savedNote) {
+                noteContent.value = savedNote;
+            }
+            if (savedDrawing) {
+                const img = new Image();
+                img.src = savedDrawing;
+                img.onload = () => ctx.drawImage(img, 0, 0);
+            }
+            if (savedPhoto) {
+                document.getElementById('photoPreview').src = savedPhoto;
+            }
+        }
+
+        function generatePDF() {
+            const pdf = new jsPDF();
+
+            // Agregar texto
+            const note = noteContent.value;
+            pdf.text(20, 20, note);
+
+            // Agregar dibujo
+            const drawing = drawingCanvas.toDataURL('image/png');
+            pdf.addImage(drawing, 'PNG', 10, 30, 180, 90);
+
+            // Agregar foto
+            const photo = localStorage.getItem('photo');
+            if (photo) {
+                pdf.addImage(photo, 'PNG', 10, 130, 180, 90);
+            }
+
+            pdf.save('Nota_Asclepio.pdf');
+        }
+
+        function clearAll() {
+            localStorage.clear();
+            noteContent.value = '';
+            clearCanvas();
+            document.getElementById('photoPreview').src = '';
+            alert('Toda la información ha sido eliminada.');
+        }
+
+        // Cargar nota al iniciar
+        loadNote();
+    </script>
+</body>
+</html>
