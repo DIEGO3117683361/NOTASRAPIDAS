@@ -5,169 +5,210 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asclepio Documentos</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+        :root {
+            --primary-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --toolbar-bg: #ffffff;
+            --border-color: #ddd;
         }
 
-        /* Barra de herramientas flotante */
-        .toolbar {
-            background-color: #333;
-            padding: 10px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            border-radius: 10px;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: #333;
+        }
+
+        /* Barra de herramientas principal */
+        .toolbar-container {
             position: fixed;
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
+            background-color: var(--toolbar-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            min-width: 300px;
+            resize: both;
+            overflow: hidden;
+            max-width: 90%;
             transition: all 0.3s ease;
-            cursor: move;
+        }
+
+        .toolbar-tabs {
+            display: flex;
+            background-color: #f5f5f5;
+            padding: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-button {
+            padding: 8px 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .tab-button.active {
+            background-color: var(--toolbar-bg);
+            color: var(--primary-color);
+            font-weight: 500;
+            border-radius: 4px;
+        }
+
+        .toolbar-content {
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+            overflow-x: auto;
+        }
+
+        .toolbar-section {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .toolbar-section.active {
+            display: flex;
         }
 
         .toolbar button, .toolbar select, .toolbar input {
-            padding: 5px 10px;
-            border: none;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
+            background-color: #fff;
             cursor: pointer;
+            white-space: nowrap;
+            font-size: 14px;
+            transition: all 0.2s;
         }
 
-        /* Botón para ocultar/mostrar la barra */
-        .toggle-toolbar {
+        .toolbar button:hover, .toolbar select:hover, .toolbar input:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Botones de control */
+        .control-buttons {
             position: fixed;
             top: 10px;
-            right: 60px; /* Ajuste para el nuevo botón */
-            background-color: #007bff;
-            color: white;
-            border: none;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+        }
+
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-color);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            background-color: #fff;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            z-index: 1001;
-            transition: transform 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
         }
 
-        .toggle-toolbar:hover {
+        .control-btn:hover {
             transform: scale(1.1);
+            background-color: #f5f5f5;
         }
 
-        /* Botón Asclepio AI */
-        .asclepio-ai-btn {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background-color: black;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1001;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5), 0 0 20px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 0, 255, 0.5);
-            transition: transform 0.3s ease;
-        }
-
-        .asclepio-ai-btn:hover {
-            transform: scale(1.1);
-        }
-
-        /* Contenedor flotante para Asclepio AI */
+        /* Contenedor AI */
         .ai-container {
             position: fixed;
-            top: 50px;
-            right: 10px;
+            top: 60px;
+            right: 20px;
             width: 400px;
             height: 500px;
             background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: none;
             z-index: 1002;
             overflow: hidden;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            border: 1px solid var(--border-color);
         }
 
         .ai-container iframe {
             width: 100%;
-            height: calc(100% - 40px);
+            height: 100%;
             border: none;
-            border-radius: 10px 10px 0 0;
         }
 
-        .ai-container .close-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
+        /* Contenedor de atajos */
+        .shortcuts-container {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1002;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .shortcuts-container h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary-color);
+        }
+
+        .shortcuts-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .shortcuts-list li {
+            margin-bottom: 10px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.3s ease;
+            padding: 8px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
         }
 
-        .ai-container .close-btn:hover {
-            transform: scale(1.1);
+        .shortcut-key {
+            background-color: #e0e0e0;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-family: monospace;
         }
 
         /* Editor */
         .editor {
-            margin: 80px 20px 20px; /* Ajuste para la barra de herramientas */
+            margin: 80px 20px 20px;
             padding: 20px;
             background-color: #fff;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             min-height: 500px;
             position: relative;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .page {
             margin-bottom: 20px;
             padding: 20px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             background-color: #f9f9f9;
             position: relative;
             min-height: 100px;
             outline: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .save-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .save-btn:hover {
-            transform: scale(1.1);
+            border-radius: 8px;
         }
 
         /* Modal de vista previa */
@@ -181,128 +222,104 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s ease;
         }
 
         .modal-content {
             background-color: #fff;
             margin: 10% auto;
             padding: 20px;
-            border: 1px solid #888;
+            border: 1px solid var(--border-color);
             width: 80%;
-            max-width: 600px;
-            border-radius: 10px;
-            animation: slideIn 0.3s ease;
+            max-width: 800px;
+            border-radius: 8px;
         }
 
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .close:hover {
-            color: #000;
-        }
-
-        .shape {
-            position: absolute;
-            border: 2px solid #000;
-            cursor: move;
-            resize: both;
-            overflow: hidden;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .shape textarea {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: transparent;
-            resize: none;
-            outline: none;
-        }
-
-        .rounded {
-            border-radius: 15px;
-        }
-
-        img, table {
-            cursor: move;
-            resize: both;
-            overflow: hidden;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .align-left {
-            text-align: left;
-        }
-
-        .align-center {
-            text-align: center;
-        }
-
-        .align-right {
-            text-align: right;
-        }
-
-        .align-justify {
-            text-align: justify;
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
     </style>
 </head>
 <body>
-    <!-- Barra de herramientas -->
-    <div class="toolbar" id="toolbar">
-        <button onclick="formatText('bold')"><b>B</b></button>
-        <button onclick="formatText('italic')"><i>I</i></button>
-        <button onclick="formatText('underline')"><u>U</u></button>
-        <select onchange="changeFontSize(this.value)">
-            <option value="12">12</option>
-            <option value="14">14</option>
-            <option value="16">16</option>
-            <option value="18">18</option>
-            <option value="20">20</option>
-        </select>
-        <input type="color" onchange="changeTextColor(this.value)">
-        <select onchange="changeFontFamily(this.value)">
-            <option value="Arial">Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Verdana">Verdana</option>
-        </select>
-        <button onclick="addImage()">Agregar Imagen</button>
-        <button onclick="addShape('rectangle')">Rectángulo</button>
-        <button onclick="addShape('circle')">Círculo</button>
-        <button onclick="addShape('triangle')">Triángulo</button>
-        <button onclick="addShape('hexagon')">Hexágono</button>
-        <button onclick="addTable()">Agregar Tabla</button>
-        <button onclick="applyRoundedBorder()">Bordes Redondeados</button>
-        <button onclick="alignText('left')">Izquierda</button>
-        <button onclick="alignText('center')">Centrar</button>
-        <button onclick="alignText('right')">Derecha</button>
-        <button onclick="alignText('justify')">Justificar</button>
-        <button onclick="addPage()">Agregar Hoja</button>
+    <!-- Barra de herramientas con pestañas -->
+    <div class="toolbar-container" id="toolbarContainer">
+        <div class="toolbar-tabs">
+            <button class="tab-button active" onclick="showToolbarSection('format')">Formato</button>
+            <button class="tab-button" onclick="showToolbarSection('insert')">Insertar</button>
+            <button class="tab-button" onclick="showToolbarSection('design')">Diseño</button>
+        </div>
+        
+        <div class="toolbar-content">
+            <!-- Sección Formato -->
+            <div class="toolbar-section active" id="formatSection">
+                <button onclick="formatText('bold')" title="Negrita (Ctrl+B)"><b>B</b></button>
+                <button onclick="formatText('italic')" title="Cursiva (Ctrl+I)"><i>I</i></button>
+                <button onclick="formatText('underline')" title="Subrayado (Ctrl+U)"><u>U</u></button>
+                <select onchange="changeFontSize(this.value)" title="Tamaño de fuente">
+                    <option value="12">12px</option>
+                    <option value="14">14px</option>
+                    <option value="16">16px</option>
+                    <option value="18">18px</option>
+                </select>
+                <input type="color" onchange="changeTextColor(this.value)" title="Color de texto">
+                <select onchange="changeFontFamily(this.value)" title="Fuente">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times</option>
+                    <option value="Courier New">Courier</option>
+                </select>
+                <button onclick="alignText('left')" title="Alinear izquierda">←</button>
+                <button onclick="alignText('center')" title="Centrar">↔</button>
+                <button onclick="alignText('right')" title="Alinear derecha">→</button>
+            </div>
+
+            <!-- Sección Insertar -->
+            <div class="toolbar-section" id="insertSection">
+                <button onclick="addImage()" title="Insertar imagen">🖼️</button>
+                <button onclick="addTable()" title="Insertar tabla">📊</button>
+                <button onclick="addShape('rectangle')" title="Forma rectangular">⬜</button>
+                <button onclick="insertLink()" title="Insertar enlace (Ctrl+L)">🔗</button>
+                <button onclick="insertBulletList()" title="Lista con viñetas (Ctrl+Shift+L)">• Lista</button>
+                <button onclick="insertNumberedList()" title="Lista numerada (Ctrl+Shift+N)">1. Lista</button>
+            </div>
+
+            <!-- Sección Diseño -->
+            <div class="toolbar-section" id="designSection">
+                <button onclick="applyRoundedBorder()" title="Bordes redondeados">🟢</button>
+                <button onclick="addPage()" title="Nueva página">📄</button>
+                <button onclick="insertHorizontalRule()" title="Línea horizontal (Ctrl+H)">―</button>
+                <button onclick="changeBackground()" title="Cambiar fondo">🎨</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Botón para ocultar/mostrar la barra -->
-    <button class="toggle-toolbar" id="toggleToolbar" onclick="toggleToolbar()">&#9776;</button>
+    <!-- Botones de control -->
+    <div class="control-buttons">
+        <button class="control-btn" onclick="toggleToolbar()" title="Mostrar/ocultar barra">⚙️</button>
+        <button class="control-btn" onclick="toggleAIContainer()" title="Asistente AI">AI</button>
+        <button class="control-btn" onclick="toggleShortcuts()" title="Atajos de teclado">⌨️</button>
+    </div>
 
-    <!-- Botón Asclepio AI -->
-    <button class="asclepio-ai-btn" id="asclepioAiBtn" onclick="toggleAIContainer()">AI</button>
-
-    <!-- Contenedor flotante para Asclepio AI -->
+    <!-- Contenedor AI -->
     <div class="ai-container" id="aiContainer">
         <iframe src="https://diego3117683361.github.io/ASCLEPIOCHAT/"></iframe>
-        <button class="close-btn" onclick="toggleAIContainer()">×</button>
+    </div>
+
+    <!-- Contenedor de atajos -->
+    <div class="shortcuts-container" id="shortcutsContainer">
+        <h3>Atajos de teclado</h3>
+        <ul class="shortcuts-list">
+            <li><span>Negrita</span><span class="shortcut-key">Ctrl + B</span></li>
+            <li><span>Cursiva</span><span class="shortcut-key">Ctrl + I</span></li>
+            <li><span>Subrayado</span><span class="shortcut-key">Ctrl + U</span></li>
+            <li><span>Insertar enlace</span><span class="shortcut-key">Ctrl + L</span></li>
+            <li><span>Lista con viñetas</span><span class="shortcut-key">Ctrl + Shift + L</span></li>
+            <li><span>Lista numerada</span><span class="shortcut-key">Ctrl + Shift + N</span></li>
+            <li><span>Línea horizontal</span><span class="shortcut-key">Ctrl + H</span></li>
+            <li><span>Guardar</span><span class="shortcut-key">Ctrl + S</span></li>
+            <li><span>Imprimir</span><span class="shortcut-key">Ctrl + P</span></li>
+        </ul>
     </div>
 
     <!-- Editor -->
@@ -310,21 +327,115 @@
         <div class="page" contenteditable="true" oninput="handleInput(event)"></div>
     </div>
 
-    <!-- Botón de guardar -->
-    <button class="save-btn" onclick="openPreview()">Guardar</button>
-
     <!-- Modal de vista previa -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closePreview()">&times;</span>
             <h2>Vista Previa</h2>
             <div id="previewContent"></div>
-            <button onclick="generatePDF()">Generar PDF</button>
-            <button onclick="printDocument()">Imprimir</button>
+            <div class="modal-actions">
+                <button onclick="generatePDF()">Generar PDF</button>
+                <button onclick="printDocument()">Imprimir</button>
+                <button onclick="closePreview()">Cerrar</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Variables globales
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+        const toolbar = document.getElementById('toolbarContainer');
+        const aiContainer = document.getElementById('aiContainer');
+        const shortcutsContainer = document.getElementById('shortcutsContainer');
+
+        // Sistema de pestañas
+        function showToolbarSection(sectionId) {
+            document.querySelectorAll('.toolbar-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`${sectionId}Section`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Sistema de arrastre para elementos
+        function dragStart(e) {
+            if (e.target.closest('.toolbar-tabs') || e.target.tagName === 'BUTTON') return;
+            
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+            
+            if (e.target === toolbar || e.target === aiContainer || e.target === shortcutsContainer) {
+                isDragging = true;
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', dragEnd);
+            }
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                
+                xOffset = currentX;
+                yOffset = currentY;
+                
+                setTranslate(currentX, currentY, e.target.closest('.toolbar-container, .ai-container, .shortcuts-container'));
+            }
+        }
+
+        function dragEnd() {
+            isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', dragEnd);
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            const maxX = window.innerWidth - el.offsetWidth;
+            const maxY = window.innerHeight - el.offsetHeight;
+            
+            xPos = Math.min(Math.max(xPos, 0), maxX);
+            yPos = Math.min(Math.max(yPos, 0), maxY);
+            
+            el.style.left = `${xPos}px`;
+            el.style.top = `${yPos}px`;
+        }
+
+        // Event listeners para arrastre
+        toolbar.addEventListener('mousedown', dragStart);
+        aiContainer.addEventListener('mousedown', dragStart);
+        shortcutsContainer.addEventListener('mousedown', dragStart);
+
+        // Control de teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'b': formatText('bold'); break;
+                    case 'i': formatText('italic'); break;
+                    case 'u': formatText('underline'); break;
+                    case 'l': insertLink(); break;
+                    case 's': openPreview(); break;
+                    case 'p': printDocument(); break;
+                    case 'h': insertHorizontalRule(); break;
+                }
+            }
+            if (e.ctrlKey && e.shiftKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'l': insertBulletList(); break;
+                    case 'n': insertNumberedList(); break;
+                }
+            }
+        });
+
         // Funciones básicas de formato
         function formatText(command) {
             document.execCommand(command, false, null);
@@ -342,218 +453,51 @@
             document.execCommand('fontName', false, font);
         }
 
-        // Agregar imágenes
+        // Funciones de inserción
         function addImage() {
             const url = prompt('Introduce la URL de la imagen:');
             if (url) {
                 const img = document.createElement('img');
                 img.src = url;
-                img.style.width = '100px';
-                img.style.position = 'absolute';
-                img.style.cursor = 'move';
-                img.draggable = true;
-                img.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', null);
-                });
+                img.style.maxWidth = '200px';
+                img.style.margin = '10px 0';
                 document.querySelector('.page').appendChild(img);
             }
         }
 
-        // Agregar figuras
-        function addShape(shape) {
-            const shapeDiv = document.createElement('div');
-            shapeDiv.className = `shape ${shape}`;
-            shapeDiv.style.width = '100px';
-            shapeDiv.style.height = '100px';
-            shapeDiv.style.backgroundColor = '#f0f0f0';
-            shapeDiv.style.border = '2px solid #000';
-
-            if (shape === 'circle') {
-                shapeDiv.style.borderRadius = '50%';
-            } else if (shape === 'triangle') {
-                shapeDiv.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
-            } else if (shape === 'hexagon') {
-                shapeDiv.style.clipPath = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
-            }
-
-            const textarea = document.createElement('textarea');
-            textarea.placeholder = 'Escribe aquí...';
-            shapeDiv.appendChild(textarea);
-
-            shapeDiv.addEventListener('mousedown', (e) => {
-                if (e.target === shapeDiv) {
-                    e.preventDefault();
-                    const offsetX = e.clientX - shapeDiv.getBoundingClientRect().left;
-                    const offsetY = e.clientY - shapeDiv.getBoundingClientRect().top;
-
-                    function moveShape(e) {
-                        shapeDiv.style.left = `${e.clientX - offsetX}px`;
-                        shapeDiv.style.top = `${e.clientY - offsetY}px`;
-                    }
-
-                    function stopMove() {
-                        window.removeEventListener('mousemove', moveShape);
-                        window.removeEventListener('mouseup', stopMove);
-                    }
-
-                    window.addEventListener('mousemove', moveShape);
-                    window.addEventListener('mouseup', stopMove);
-                }
-            });
-
-            document.querySelector('.page').appendChild(shapeDiv);
+        function insertLink() {
+            const url = prompt('Introduce la URL del enlace:');
+            if (url) document.execCommand('createLink', false, url);
         }
 
-        // Agregar tablas
-        function addTable() {
-            const rows = parseInt(prompt('Número de filas:'));
-            const cols = parseInt(prompt('Número de columnas:'));
-            if (rows && cols) {
-                const table = document.createElement('table');
-                table.style.borderCollapse = 'collapse';
-                table.style.position = 'absolute';
-                table.style.cursor = 'move';
-
-                for (let i = 0; i < rows; i++) {
-                    const tr = document.createElement('tr');
-                    for (let j = 0; j < cols; j++) {
-                        const td = document.createElement('td');
-                        td.style.border = '1px solid #000';
-                        td.style.padding = '5px';
-                        td.contentEditable = true;
-                        tr.appendChild(td);
-                    }
-                    table.appendChild(tr);
-                }
-
-                table.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    const offsetX = e.clientX - table.getBoundingClientRect().left;
-                    const offsetY = e.clientY - table.getBoundingClientRect().top;
-
-                    function moveTable(e) {
-                        table.style.left = `${e.clientX - offsetX}px`;
-                        table.style.top = `${e.clientY - offsetY}px`;
-                    }
-
-                    function stopMove() {
-                        window.removeEventListener('mousemove', moveTable);
-                        window.removeEventListener('mouseup', stopMove);
-                    }
-
-                    window.addEventListener('mousemove', moveTable);
-                    window.addEventListener('mouseup', stopMove);
-                });
-
-                document.querySelector('.page').appendChild(table);
-            }
+        function insertBulletList() {
+            document.execCommand('insertUnorderedList');
         }
 
-        // Aplicar bordes redondeados
-        function applyRoundedBorder() {
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                const span = document.createElement('span');
-                span.className = 'rounded';
-                range.surroundContents(span);
-            }
+        function insertNumberedList() {
+            document.execCommand('insertOrderedList');
         }
 
-        // Alinear texto o imágenes
-        function alignText(alignment) {
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                const div = document.createElement('div');
-                div.style.textAlign = alignment;
-                range.surroundContents(div);
-            }
+        function insertHorizontalRule() {
+            document.execCommand('insertHorizontalRule');
         }
 
-        // Agregar nuevas páginas
-        function addPage() {
-            const editor = document.getElementById('editor');
-            const newPage = document.createElement('div');
-            newPage.className = 'page';
-            newPage.contentEditable = 'true';
-            newPage.setAttribute('oninput', 'handleInput(event)');
-            editor.appendChild(newPage);
-        }
-
-        // Atajos de teclado
-        function handleInput(event) {
-            const page = event.target;
-            const text = page.innerText;
-
-            // Convertir >> en lista
-            if (text.endsWith('>>')) {
-                page.innerHTML = page.innerHTML.replace(/>>/g, '');
-                const ul = document.createElement('ul');
-                const li = document.createElement('li');
-                li.contentEditable = true;
-                ul.appendChild(li);
-                page.appendChild(ul);
-                li.focus();
-            }
-
-            // Convertir *palabra* en negrita
-            const regex = /\*(.*?)\*/g;
-            if (regex.test(text)) {
-                page.innerHTML = page.innerHTML.replace(regex, '<strong>$1</strong>');
-            }
-        }
-
-        // Ocultar/mostrar la barra de herramientas
+        // Control de la interfaz
         function toggleToolbar() {
-            const toolbar = document.getElementById('toolbar');
-            const toggleBtn = document.getElementById('toggleToolbar');
-            if (toolbar.style.display === 'none') {
-                toolbar.style.display = 'flex';
-                toggleBtn.innerHTML = '&#9776;';
-            } else {
-                toolbar.style.display = 'none';
-                toggleBtn.innerHTML = '+';
-            }
+            toolbar.style.display = toolbar.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Ocultar/mostrar el contenedor de Asclepio AI
         function toggleAIContainer() {
-            const aiContainer = document.getElementById('aiContainer');
-            if (aiContainer.style.display === 'none') {
-                aiContainer.style.display = 'block';
-                makeDraggable(aiContainer);
-            } else {
-                aiContainer.style.display = 'none';
-            }
+            aiContainer.style.display = aiContainer.style.display === 'none' ? 'block' : 'none';
+            setTranslate(xOffset, yOffset, aiContainer);
         }
 
-        // Hacer la barra de herramientas arrastrable
-        function makeDraggable(element) {
-            let isDragging = false;
-            let offsetX, offsetY;
-
-            element.addEventListener('mousedown', (e) => {
-                if (e.target === element || e.target.classList.contains('close-btn')) {
-                    isDragging = true;
-                    offsetX = e.clientX - element.getBoundingClientRect().left;
-                    offsetY = e.clientY - element.getBoundingClientRect().top;
-                }
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    element.style.left = `${e.clientX - offsetX}px`;
-                    element.style.top = `${e.clientY - offsetY}px`;
-                }
-            });
-
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
+        function toggleShortcuts() {
+            shortcutsContainer.style.display = shortcutsContainer.style.display === 'none' ? 'block' : 'none';
+            setTranslate(xOffset, yOffset, shortcutsContainer);
         }
 
-        // Vista previa
+        // Vista previa y exportación
         function openPreview() {
             const previewContent = document.getElementById('previewContent');
             previewContent.innerHTML = document.getElementById('editor').innerHTML;
@@ -564,24 +508,20 @@
             document.getElementById('previewModal').style.display = 'none';
         }
 
-        // Generar PDF (placeholder)
         function generatePDF() {
-            alert('Generar PDF no está implementado en este ejemplo.');
+            alert('Función de PDF no implementada');
         }
 
-        // Imprimir
         function printDocument() {
-            const printContent = document.getElementById('editor').innerHTML;
-            const printWindow = window.open('', '', 'height=500,width=800');
-            printWindow.document.write('<html><head><title>Imprimir</title></head><body>');
-            printWindow.document.write(printContent);
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.print();
+            window.print();
         }
 
-        // Hacer la barra de herramientas arrastrable
-        makeDraggable(document.getElementById('toolbar'));
+        // Inicialización
+        document.querySelectorAll('.page').forEach(page => {
+            page.addEventListener('click', () => {
+                page.style.minHeight = '150px';
+            });
+        });
     </script>
 </body>
 </html>
