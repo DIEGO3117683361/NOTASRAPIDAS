@@ -12,12 +12,21 @@
             background-color: #f4f4f4;
         }
 
+        /* Barra de herramientas flotante */
         .toolbar {
             background-color: #333;
             padding: 10px;
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            border-radius: 10px;
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            cursor: move;
         }
 
         .toolbar button, .toolbar select, .toolbar input {
@@ -27,8 +36,105 @@
             cursor: pointer;
         }
 
+        /* Botón para ocultar/mostrar la barra */
+        .toggle-toolbar {
+            position: fixed;
+            top: 10px;
+            right: 60px; /* Ajuste para el nuevo botón */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-toolbar:hover {
+            transform: scale(1.1);
+        }
+
+        /* Botón Asclepio AI */
+        .asclepio-ai-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5), 0 0 20px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 0, 255, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .asclepio-ai-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Contenedor flotante para Asclepio AI */
+        .ai-container {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            width: 400px;
+            height: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1002;
+            overflow: hidden;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ai-container iframe {
+            width: 100%;
+            height: calc(100% - 40px);
+            border: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .ai-container .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .ai-container .close-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Editor */
         .editor {
-            margin: 20px;
+            margin: 80px 20px 20px; /* Ajuste para la barra de herramientas */
             padding: 20px;
             background-color: #fff;
             border: 1px solid #ccc;
@@ -44,6 +150,7 @@
             position: relative;
             min-height: 100px;
             outline: none;
+            animation: fadeIn 0.3s ease;
         }
 
         .save-btn {
@@ -56,8 +163,14 @@
             border: none;
             border-radius: 25px;
             cursor: pointer;
+            transition: transform 0.3s ease;
         }
 
+        .save-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Modal de vista previa */
         .modal {
             display: none;
             position: fixed;
@@ -68,6 +181,7 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
         }
 
         .modal-content {
@@ -78,6 +192,12 @@
             width: 80%;
             max-width: 600px;
             border-radius: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .close {
@@ -86,6 +206,7 @@
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
+            transition: color 0.3s ease;
         }
 
         .close:hover {
@@ -98,6 +219,7 @@
             cursor: move;
             resize: both;
             overflow: hidden;
+            animation: fadeIn 0.3s ease;
         }
 
         .shape textarea {
@@ -117,6 +239,7 @@
             cursor: move;
             resize: both;
             overflow: hidden;
+            animation: fadeIn 0.3s ease;
         }
 
         .align-left {
@@ -137,7 +260,8 @@
     </style>
 </head>
 <body>
-    <div class="toolbar">
+    <!-- Barra de herramientas -->
+    <div class="toolbar" id="toolbar">
         <button onclick="formatText('bold')"><b>B</b></button>
         <button onclick="formatText('italic')"><i>I</i></button>
         <button onclick="formatText('underline')"><u>U</u></button>
@@ -169,12 +293,27 @@
         <button onclick="addPage()">Agregar Hoja</button>
     </div>
 
-    <div class="editor" id="editor">
-        <div class="page" contenteditable="true"></div>
+    <!-- Botón para ocultar/mostrar la barra -->
+    <button class="toggle-toolbar" id="toggleToolbar" onclick="toggleToolbar()">&#9776;</button>
+
+    <!-- Botón Asclepio AI -->
+    <button class="asclepio-ai-btn" id="asclepioAiBtn" onclick="toggleAIContainer()">AI</button>
+
+    <!-- Contenedor flotante para Asclepio AI -->
+    <div class="ai-container" id="aiContainer">
+        <iframe src="https://diego3117683361.github.io/ASCLEPIOCHAT/"></iframe>
+        <button class="close-btn" onclick="toggleAIContainer()">×</button>
     </div>
 
+    <!-- Editor -->
+    <div class="editor" id="editor">
+        <div class="page" contenteditable="true" oninput="handleInput(event)"></div>
+    </div>
+
+    <!-- Botón de guardar -->
     <button class="save-btn" onclick="openPreview()">Guardar</button>
 
+    <!-- Modal de vista previa -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closePreview()">&times;</span>
@@ -338,7 +477,80 @@
             const newPage = document.createElement('div');
             newPage.className = 'page';
             newPage.contentEditable = 'true';
+            newPage.setAttribute('oninput', 'handleInput(event)');
             editor.appendChild(newPage);
+        }
+
+        // Atajos de teclado
+        function handleInput(event) {
+            const page = event.target;
+            const text = page.innerText;
+
+            // Convertir >> en lista
+            if (text.endsWith('>>')) {
+                page.innerHTML = page.innerHTML.replace(/>>/g, '');
+                const ul = document.createElement('ul');
+                const li = document.createElement('li');
+                li.contentEditable = true;
+                ul.appendChild(li);
+                page.appendChild(ul);
+                li.focus();
+            }
+
+            // Convertir *palabra* en negrita
+            const regex = /\*(.*?)\*/g;
+            if (regex.test(text)) {
+                page.innerHTML = page.innerHTML.replace(regex, '<strong>$1</strong>');
+            }
+        }
+
+        // Ocultar/mostrar la barra de herramientas
+        function toggleToolbar() {
+            const toolbar = document.getElementById('toolbar');
+            const toggleBtn = document.getElementById('toggleToolbar');
+            if (toolbar.style.display === 'none') {
+                toolbar.style.display = 'flex';
+                toggleBtn.innerHTML = '&#9776;';
+            } else {
+                toolbar.style.display = 'none';
+                toggleBtn.innerHTML = '+';
+            }
+        }
+
+        // Ocultar/mostrar el contenedor de Asclepio AI
+        function toggleAIContainer() {
+            const aiContainer = document.getElementById('aiContainer');
+            if (aiContainer.style.display === 'none') {
+                aiContainer.style.display = 'block';
+                makeDraggable(aiContainer);
+            } else {
+                aiContainer.style.display = 'none';
+            }
+        }
+
+        // Hacer la barra de herramientas arrastrable
+        function makeDraggable(element) {
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            element.addEventListener('mousedown', (e) => {
+                if (e.target === element || e.target.classList.contains('close-btn')) {
+                    isDragging = true;
+                    offsetX = e.clientX - element.getBoundingClientRect().left;
+                    offsetY = e.clientY - element.getBoundingClientRect().top;
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    element.style.left = `${e.clientX - offsetX}px`;
+                    element.style.top = `${e.clientY - offsetY}px`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
         }
 
         // Vista previa
@@ -367,6 +579,9 @@
             printWindow.document.close();
             printWindow.print();
         }
+
+        // Hacer la barra de herramientas arrastrable
+        makeDraggable(document.getElementById('toolbar'));
     </script>
 </body>
 </html>
